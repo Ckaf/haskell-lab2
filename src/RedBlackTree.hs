@@ -4,8 +4,10 @@ module RedBlackTree
       delete,
       is_member,
       insert,
-      emptyTree
+      emptyTree,
+      filterT
     ) where
+
 
 data Color = Red | Black deriving (Show)
 
@@ -13,9 +15,6 @@ data Color = Red | Black deriving (Show)
 
 data Tree a = Leaf | Node a Color (Tree a) (Tree a) deriving (Show)
 
-instance Foldable Tree where
-   foldr _ z Leaf = z
-   foldr f z (Node d _ l r) = foldr f (f d (foldr f z r)) l
 
 color :: Tree a -> Color
 color Leaf = Black
@@ -119,3 +118,34 @@ merge (Node x Black t1 t2) (Node y Black t3 t4)  =
   in case s of
         (Node z Red s1 s2) -> (Node z Red (Node x Black t1 s1) (Node y Black s2 t4))
         (Node z Black s1 s2) -> balL (Node x Black t1 (Node y Black s t4))
+
+
+instance (Ord a) => Eq (Tree a) where
+  (Leaf) == (Leaf) = True
+  (Node d1 _ _ _) == (Node d2 _ _ _) = d1 == d2
+
+instance (Ord a) => Ord (Tree a) where
+  (Node d1 _ _ _) `compare` (Node d2 _ _ _) = d1 `compare` d2
+
+instance (Ord a) => Semigroup (Tree a) where
+  (<>) = mappend
+
+instance (Ord a) => Monoid (Tree a) where
+  mempty = Leaf
+  l1 `mappend` l2 = foldl (\x y ->insert y x) l1 l2
+
+
+instance Foldable Tree where
+  foldr _ z Leaf = z
+  foldr f z (Node d _ l r) = foldr f (f d (foldr f z r)) l
+  foldl _ z Leaf = z
+  foldl f z (Node d _ l r) = foldl f (f (foldl f z l) d) r
+
+instance Functor Tree where
+  fmap _ Leaf = Leaf
+  fmap f (Node d c l r) = Node (f d) c (fmap f l ) (fmap f r)
+
+filterT :: (a -> Bool) -> Tree a -> [a]
+filterT _ Leaf = []
+filterT f (Node d _ l r) | f d = [d] ++ (filterT f l ) ++ (filterT f r)
+                         | otherwise = (filterT f l ) ++ (filterT f r)
