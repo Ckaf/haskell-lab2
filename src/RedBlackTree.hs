@@ -67,6 +67,7 @@ del x t@(Node y _ l r)
 
 
 delL :: Ord a => a -> Tree a -> Tree a
+delL _ Leaf = Leaf
 delL x (Node y _ t1@(Node _ Black _ _) t2) = balL $ Node y Black (del x t1) t2
 delL x (Node  y _ t1 t2) = Node y Red (del x t1) t2
 
@@ -85,7 +86,7 @@ balL (Node y Black t1 (Node z Black t2 t3)) = balance' (Node y Black t1 (Node z 
                                                             --                   /\
                                                             --                 t2 t3
 
-balL (Node y Black t1 (Node z Red (Node u Black t2 t3) t4@(Node value Black l r))) =
+balL (Node y Black t1 (Node z Red (Node u Black t2 t3) (Node value Black l r))) =
   Node u Red (Node y Black t1 t2) (balance' (Node z Black t3 (Node value Red l r)))
                                                             -- fix this case:    B
                                                             --                  /\
@@ -93,7 +94,10 @@ balL (Node y Black t1 (Node z Red (Node u Black t2 t3) t4@(Node value Black l r)
                                                             --                    /\
                                                             --                  t2 t3
 
+balL t = t
+
 delR :: Ord a => a -> Tree a -> Tree a
+delR _ Leaf = Leaf
 delR x (Node y _ t1 t2@(Node _ Black _ _)) = balR $ Node y Black t1 (del x t2)
 delR x (Node y _ t1 t2) = Node y Red t1 (del x t2)
 
@@ -102,6 +106,7 @@ balR (Node y Black t1 (Node x Red t2 t3)) = Node y Red t1(Node x Black t2 t3)
 balR (Node y Black (Node z Black t1 t2) t3) = balance' (Node y Black (Node z Red t1 t2) t3)
 balR (Node y Black (Node z Red (Node value Black l r) (Node u Black t2 t3)) t4) =
   Node u Red (balance' (Node z Black (Node value Red l r) t2)) (Node y Black t3 t4)
+balR t = t
 
 merge :: Tree a -> Tree a -> Tree a
 merge Leaf t = t
@@ -113,11 +118,13 @@ merge (Node x Red t1 t2) (Node y Red t3 t4)  =
   in case s of
         (Node z Red s1 s2) -> (Node z Red (Node x Red t1 s1) (Node y Red s2 t4))
         (Node _ Black _ _) -> (Node x Red t1 (Node y Red s t4))
+        Leaf -> (Node x Red t1 (Node y Red s t4))
 merge (Node x Black t1 t2) (Node y Black t3 t4)  =
   let s = merge t2 t3
   in case s of
         (Node z Red s1 s2) -> (Node z Red (Node x Black t1 s1) (Node y Black s2 t4))
         (Node z Black s1 s2) -> balL (Node x Black t1 (Node y Black s t4))
+        Leaf -> balL (Node x Black t1 (Node y Black s t4))
 
 
 instance (Ord a) => Eq (Tree a) where

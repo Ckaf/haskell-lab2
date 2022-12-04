@@ -77,5 +77,13 @@ test9 = TestCase (assertEqual "Test filter" expected_list (filterT (>4) tr ))
                     expected_list = [5, 6]
                     tr = add_elements emptyTree [6, 5, 4, 3, 2, 1]
 
+test10 ::Test
+test10 = TestCase (assertEqual "Test delete" expected_list (append tr actual_list))
+                  where
+                    expected_list = [1, 3, 4, 5, 6]
+                    actual_list = []
+                    tr = delete 2 $ add_elements emptyTree $ [1, 2, 3, 4, 5, 6]
+                    append xs ys = foldr (\x y -> x:y) ys xs
+
 tests :: Test
-tests = TestList [ test1, test2, test3, test4, test5, test6, test7, test8, test9 ]
+tests = TestList [ test1, test2, test3, test4, test5, test6, test7, test8, test9, test10 ]
